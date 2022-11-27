@@ -4,12 +4,17 @@ import { Response } from "express";
 import httpStatus from "http-status";
 
 export async function getHotels(req: AuthenticatedRequest, res: Response) {
+  const { userId } = req.body;
+
   try {
-    const hotel = await hotelService.getHotels();
+    const hotel = await hotelService.getHotels(userId);
     
     return res.status(httpStatus.OK).send(hotel);
   } catch (error) {
-    return res.sendStatus(httpStatus.NO_CONTENT);
+    if(error.name === "unauthorizedError") {
+      return res.sendStatus(httpStatus.UNAUTHORIZED);
+    }
+    return res.sendStatus(httpStatus.NOT_FOUND);
   }
 }
 

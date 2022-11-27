@@ -33,7 +33,7 @@ describe("GET /hotels", () => {
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
 
-  it("should respond with status 401 if there is no hotel for given token", async () => {
+  it("should respond with status 401 if there is no session for given token", async () => {
     const userWithoutSession = await createUser();
     const token = jwt.sign({ userId: userWithoutSession.id }, process.env.JWT_SECRET);
 
@@ -42,34 +42,13 @@ describe("GET /hotels", () => {
     expect(response.status).toBe(httpStatus.UNAUTHORIZED);
   });
 
-  // describe("when token is valid", () => {
-  // it("should respond with empty array when there are no ticket types created", async () => {
-  //   const token = await generateValidToken();
+  describe("when token is valid", () => {
+    it("should respond with status 404 when user doesnt have an enrollment yet", async () => {
+      const token = await generateValidToken();
 
-  //   const response = await server.get("/tickets/types").set("Authorization", `Bearer ${token}`);
+      const response = await server.get("/hotels").set("Authorization", `Bearer ${token}`);
 
-  //   expect(response.body).toEqual([]);
-  // });
-
-  //   it("should respond with status 200 and with existing TicketTypes data", async () => {
-  //     const token = await generateValidToken();
-
-  //     const ticketType = await createTicketType();
-
-  //     const response = await server.get("/tickets/types").set("Authorization", `Bearer ${token}`);
-
-  //     expect(response.status).toBe(httpStatus.OK);
-  //     expect(response.body).toEqual([
-  //       {
-  //         id: ticketType.id,
-  //         name: ticketType.name,
-  //         price: ticketType.price,
-  //         isRemote: ticketType.isRemote,
-  //         includesHotel: ticketType.includesHotel,
-  //         createdAt: ticketType.createdAt.toISOString(),
-  //         updatedAt: ticketType.updatedAt.toISOString(),
-  //       },
-  //     ]);
-  //   });
-  // });
+      expect(response.status).toEqual(httpStatus.NOT_FOUND);
+    });
+  });
 });
