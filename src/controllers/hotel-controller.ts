@@ -11,6 +11,14 @@ export async function getHotels(req: AuthenticatedRequest, res: Response) {
     
     return res.status(httpStatus.OK).send(hotel);
   } catch (error) {
+    if(error.name === "invalidPaymentError") {
+      return res.sendStatus(httpStatus.UNAUTHORIZED);
+    }
+    
+    if(error.name === "notFoundError") {
+      return res.sendStatus(httpStatus.NOT_FOUND);
+    }
+
     if(error.name === "unauthorizedError") {
       return res.sendStatus(httpStatus.UNAUTHORIZED);
     }
