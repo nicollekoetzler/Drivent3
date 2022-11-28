@@ -1,10 +1,10 @@
 import { prisma } from "@/config";
 import { TicketStatus } from "@prisma/client";
 
-export async function createValidTicket() {
+export async function createTicketWithHotel() {
   return prisma.ticketType.create({
     data: {
-      name: "Valid",
+      name: "withHotel",
       price: 1500,
       isRemote: false,
       includesHotel: true,
@@ -12,13 +12,13 @@ export async function createValidTicket() {
   });
 }
 
-export async function createInvalidTicket() {
+export async function createTicketWithoutHotel() {
   return prisma.ticketType.create({
     data: {
-      name: "Invalid",
+      name: "withoutHotel",
       price: 1500,
       isRemote: true,
-      includesHotel: true,
+      includesHotel: false,
     }
   });
 }
