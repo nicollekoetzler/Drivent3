@@ -22,22 +22,3 @@ export async function createTicketWithoutHotel() {
     }
   });
 }
-
-// export async function createHotel() {
-//     return prisma.hotel.create({
-//         data: {
-//             name: "Invalid",
-//             image: sda,
-//         }
-//     });
-// }
-
-// export async function createRoom() {
-//     return prisma.room.create({
-//         data: {
-//             name: "Valid",
-//             capacity: 2,
-//             hotelId: id,
-//         }
-//     });
-// }
