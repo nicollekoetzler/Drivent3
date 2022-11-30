@@ -1,51 +1,37 @@
-import { AuthenticatedRequest } from "@/middlewares";
-import hotelService from "@/services/hotel-service";
 import { Response } from "express";
+import { AuthenticatedRequest } from "@/middlewares";
+import hotelService from "@/services/hotels-service";
 import httpStatus from "http-status";
 
 export async function getHotels(req: AuthenticatedRequest, res: Response) {
-  const { userId } = req.body;
+  const { userId } = req;
 
   try {
-    const hotel = await hotelService.getHotels(userId);
-    
-    return res.status(httpStatus.OK).send(hotel);
+    const hotels = await hotelService.getHotels(Number(userId));
+    return res.status(httpStatus.OK).send(hotels);
   } catch (error) {
-    if(error.name === "invalidPaymentError") {
-      return res.sendStatus(httpStatus.UNAUTHORIZED);
-    }
-    
-    if(error.name === "notFoundError") {
+    if (error.name === "NotFoundError") {
       return res.sendStatus(httpStatus.NOT_FOUND);
     }
-
-    if(error.name === "unauthorizedError") {
-      return res.sendStatus(httpStatus.UNAUTHORIZED);
-    }
-    return res.sendStatus(httpStatus.NOT_FOUND);
+    return res.sendStatus(httpStatus.PAYMENT_REQUIRED);
   }
 }
 
-export async function getHotelRooms(req: AuthenticatedRequest, res: Response) {
-  const { userId, hotelId } = req.body;
+export async function getHotelsWithRooms(req: AuthenticatedRequest, res: Response) {
+  const { userId } = req;
+  const { hotelId } = req.params;
 
   try {
-    const rooms = await hotelService.getHotelRooms(userId, hotelId);
+    const hotels = await hotelService.getHotelsWithRooms(Number(userId), Number(hotelId));
 
-    return res.status(httpStatus.OK).send(rooms);
+    return res.status(httpStatus.OK).send(hotels);
   } catch (error) {
-    if(error.name === "invalidPaymentError") {
-      return res.sendStatus(httpStatus.UNAUTHORIZED);
-    }
-    
-    if(error.name === "notFoundError") {
+    if (error.name === "NotFoundError") {
       return res.sendStatus(httpStatus.NOT_FOUND);
     }
-
-    if(error.name === "unauthorizedError") {
-      return res.sendStatus(httpStatus.UNAUTHORIZED);
+    if (error.name === "CannotListHotelsError") {
+      return res.sendStatus(httpStatus.PAYMENT_REQUIRED);
     }
-    return res.sendStatus(httpStatus.NOT_FOUND);
+    return res.sendStatus(httpStatus.BAD_REQUEST);
   }
 }
-
