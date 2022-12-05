@@ -31,10 +31,19 @@ async function findBookingRoom(roomId: number) {
   });
 }
 
+async function removeBooking(bookingId: number) {
+  return prisma.booking.delete({
+    where: {
+      id: bookingId
+    }
+  });
+}
+
 const bookingRepository = {
   findBooking,
   createBooking,
   findBookingRoom,
+  removeBooking,
 };
 
 export default bookingRepository;

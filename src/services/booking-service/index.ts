@@ -1,6 +1,6 @@
 import enrollmentRepository from "@/repositories/enrollment-repository";
 import ticketRepository from "@/repositories/ticket-repository";
-import { notFoundError, unauthorizedError } from "@/errors";
+import { notFoundError, unauthorizedError, forbiddenError } from "@/errors";
 import bookingRepository from "@/repositories/booking-repository";
 
 async function listBooking(userId: number) {
@@ -31,7 +31,15 @@ async function getBooking(userId: number) {
 }
 
 async function createBooking(userId: number, roomId: number) {
-  await listBooking(userId);
+  const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
+  if (!enrollment) {
+    throw forbiddenError();
+  }
+  //Tem ticket pago isOnline false e includesHotel true
+  const ticket = await ticketRepository.findTicketByEnrollmentId(enrollment.id);
+  if (!ticket || ticket.status === "RESERVED" || ticket.TicketType.isRemote || !ticket.TicketType.includesHotel) {
+    throw forbiddenError();
+  }
 
   // verify if there is a room
   const room = await bookingRepository.findBookingRoom(roomId);
@@ -41,16 +49,52 @@ async function createBooking(userId: number, roomId: number) {
 
   // verify if the room is full
   if (room.Booking.length === room.capacity) {
-    throw unauthorizedError();
+    throw forbiddenError();
   }
 
   const createsBooking = await bookingRepository.createBooking(userId, roomId);
   return createsBooking;
 }
 
+async function updateBooking(oldBookingId: number, userId: number, roomId: number) {
+  const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
+  if (!enrollment) {
+    throw forbiddenError();
+  }
+
+  //Tem ticket pago isOnline false e includesHotel true
+  const ticket = await ticketRepository.findTicketByEnrollmentId(enrollment.id);
+  if (!ticket || ticket.status === "RESERVED" || ticket.TicketType.isRemote || !ticket.TicketType.includesHotel) {
+    throw forbiddenError();
+  }
+
+  const booking = await bookingRepository.findBooking(userId);
+  if (!booking || booking.id !== oldBookingId) {
+    throw forbiddenError();
+  }
+  
+  const room = await bookingRepository.findBookingRoom(roomId);
+  if (!room) {
+    throw notFoundError();
+  }
+  
+  if (room.Booking.length === room.capacity) {
+    throw forbiddenError();
+  }
+
+  if (roomId <= 0) {
+    throw forbiddenError();
+  }
+
+  const newBooking = await bookingRepository.createBooking(userId, roomId);
+  await bookingRepository.removeBooking(oldBookingId);
+  return newBooking;
+}
+
 const bookingService = {
   getBooking,
   createBooking,
+  updateBooking
 };
 
 export default bookingService;
